@@ -216,3 +216,14 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# HealthReadmit AI - local datasets
+data/raw/
+data/processed/
+
+# Local notebooks outputs
+notebooks/.ipynb_checkpoints/
+
+# Local environment and OS files
+.DS_Store
+Thumbs.db

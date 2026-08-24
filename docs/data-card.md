@@ -16,7 +16,15 @@ https://archive.ics.uci.edu/dataset/296/diabetes-130-us-hospitals-for-years-1999
 
 ### Dataset Version
 
-The dataset will be retrieved from the official UCI Machine Learning Repository source.
+The dataset was retrieved from the official UCI Machine Learning Repository source on August 24, 2026.
+
+### Source File
+
+`diabetes+130-us+hospitals+for+years+1999-2008.zip`
+
+### SHA-256
+
+`f82ac129da2ddd2299391ff6fbae3a6a58b3edcf59ac9d7bd480c00fe453112a`
 
 ### Domain
 
@@ -41,6 +49,50 @@ The dataset will be used to investigate whether historical hospitalization infor
 The dataset will be used exclusively for educational, research, and portfolio purposes within this project.
 
 ## 2. Dataset Composition
+
+### Initial Dataset Validation
+
+The first programmatic inspection of the downloaded dataset confirmed:
+
+- 101,766 patient encounters.
+- 50 columns in the downloaded CSV file.
+- The target variable is `readmitted`.
+- The target contains three original categories: `NO`, `>30`, and `<30`.
+- Missing values are represented as `?` in the raw dataset and were interpreted as missing values during the initial inspection.
+
+### Initial Target Distribution
+
+| Original Target | Records | Proportion |
+|----------------|---------:|-----------:|
+| `NO` | 54,864 | 53.91% |
+| `>30` | 35,545 | 34.93% |
+| `<30` | 11,357 | 11.16% |
+
+The `<30` category represents approximately 11.16% of the encounters and will therefore be treated as the positive class during the initial binary classification formulation.
+
+### Initial Missing Data Findings
+
+The initial inspection identified substantial missingness in several variables:
+
+| Feature | Missing Records |
+|---------|----------------:|
+| `weight` | 98,569 |
+| `max_glu_serum` | 96,420 |
+| `A1Cresult` | 84,748 |
+| `medical_specialty` | 49,949 |
+| `payer_code` | 40,256 |
+| `race` | 2,273 |
+| `diag_3` | 1,423 |
+| `diag_2` | 358 |
+| `diag_1` | 21 |
+
+These findings are preliminary and will be investigated further during exploratory data analysis and preprocessing.
+
+### Data Type Considerations
+
+The initial pandas inspection generated a mixed-type warning for `payer_code`.
+
+The final data loading strategy will be reviewed during preprocessing to ensure that categorical variables and missing values are handled consistently.
 
 ### Number of Instances
 
