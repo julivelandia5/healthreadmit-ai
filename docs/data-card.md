@@ -235,6 +235,104 @@ Instead, their role in model development and fairness evaluation will be explici
 
 Several data quality and bias considerations will be investigated throughout the project.
 
+### Identifier Structure
+
+The initial dataset inspection found that all 101,766 encounter records have unique `encounter_id` values.
+
+However, the dataset contains 71,518 unique patients identified by `patient_nbr`.
+
+A total of 16,773 patients have multiple hospital encounters in the dataset, with the maximum number of encounters for a single patient being 40.
+
+This distinction is important because the unit of observation is a hospital encounter rather than a unique patient.
+
+During Machine Learning evaluation, patient-level grouping will be considered when creating training and testing partitions to reduce the risk of information leakage between encounters belonging to the same patient.
+
+### Duplicate Record Analysis
+
+The initial inspection found no duplicated `encounter_id` values and no fully duplicated rows.
+
+The results were:
+
+| Check | Result |
+|-------|-------:|
+| Unique encounter IDs | 101,766 |
+| Duplicated encounter IDs | 0 |
+| Fully duplicated rows | 0 |
+
+Therefore, no duplicate records will be removed at this stage based solely on exact row duplication.
+
+The presence of multiple encounters belonging to the same patient will be treated separately because repeated encounters are not necessarily duplicate records.
+
+### Demographic Distribution and Initial Outcome Rates
+
+The initial exploratory analysis examined `race`, `gender`, and `age` as demographic variables.
+
+These variables were analyzed descriptively against the binary early-readmission definition (`readmitted == "<30"`).
+
+#### Race
+
+| Group | Records | Early Readmission Rate |
+|-------|--------:|-----------------------:|
+| Caucasian | 76,099 | 11.29% |
+| AfricanAmerican | 19,210 | 11.22% |
+| Hispanic | 2,037 | 10.41% |
+| Asian | 641 | 10.14% |
+| Other | 1,506 | 9.63% |
+| Missing | 2,273 | 8.27% |
+
+#### Gender
+
+| Group | Records | Early Readmission Rate |
+|-------|--------:|-----------------------:|
+| Female | 54,708 | 11.25% |
+| Male | 47,055 | 11.06% |
+| Unknown/Invalid | 3 | 0.00% |
+
+The `Unknown/Invalid` gender category contains only three records and should not be interpreted as a statistically meaningful subgroup.
+
+#### Age
+
+The age variable is represented as categorical intervals rather than exact ages.
+
+| Age Group | Records | Early Readmission Rate |
+|-----------|--------:|-----------------------:|
+| `[20-30)` | 1,657 | 14.24% |
+| `[80-90)` | 17,197 | 12.08% |
+| `[70-80)` | 26,068 | 11.77% |
+| `[30-40)` | 3,775 | 11.23% |
+| `[60-70)` | 22,483 | 11.13% |
+| `[90-100)` | 2,793 | 11.10% |
+| `[40-50)` | 9,685 | 10.60% |
+| `[50-60)` | 17,256 | 9.67% |
+| `[10-20)` | 691 | 5.79% |
+| `[0-10)` | 161 | 1.86% |
+
+These results are descriptive and do not establish causal relationships. Differences between groups may reflect sample composition, underlying clinical characteristics, data collection practices, or other factors.
+
+The demographic analysis will inform the later fairness evaluation. Model-level fairness metrics will be assessed separately after model training and prediction.
+
+### Missing Data Analysis
+
+The initial missingness analysis identified substantial variation across variables.
+
+| Feature | Missing Records | Missing Percentage | Severity |
+|---------|----------------:|-------------------:|----------|
+| `weight` | 98,569 | 96.86% | Very high |
+| `max_glu_serum` | 96,420 | 94.75% | Very high |
+| `A1Cresult` | 84,748 | 83.28% | High |
+| `medical_specialty` | 49,949 | 49.08% | Moderate |
+| `payer_code` | 40,256 | 39.56% | Moderate |
+| `race` | 2,273 | 2.23% | Very low |
+| `diag_3` | 1,423 | 1.40% | Very low |
+| `diag_2` | 358 | 0.35% | Very low |
+| `diag_1` | 21 | 0.02% | Very low |
+
+These missingness levels will be considered during preprocessing and feature selection.
+
+High missingness alone will not be treated as sufficient evidence to automatically remove a feature. The meaning of missing values, potential predictive value, and risk of introducing bias will be investigated before final preprocessing decisions are made.
+
+In particular, variables such as `weight`, `max_glu_serum`, and `A1Cresult` require additional investigation because their missingness may reflect data availability or whether a measurement was recorded, rather than random missingness.
+
 ### Data Quality
 
 The analysis will investigate:

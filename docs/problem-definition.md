@@ -66,6 +66,20 @@ The project will document the transformation process to ensure that the target d
 
 Special attention will be given to potential target leakage. Features that would only become available after the outcome being predicted will not be used as predictive inputs.
 
+### Prediction Timing and Leakage Considerations
+
+The initial prediction scenario assumes that the model estimates the risk of early readmission using information available during the hospitalization encounter, before the future readmission outcome is known.
+
+This temporal framing is important because not every variable in the original dataset should automatically be considered a valid predictive feature.
+
+Variables will therefore be reviewed according to when the information would realistically become available relative to the prediction point.
+
+Particular attention will be given to variables related to discharge processes, post-encounter information, or other information that may only become available after substantial portions of the hospitalization have occurred.
+
+The project will explicitly document features that are excluded because of potential target leakage or because their availability is inconsistent with the intended prediction scenario.
+
+The final feature set will be established after the data exploration and feature availability review.
+
 ## 6. Scope
 
 The HealthReadmit AI project will cover the following components:
@@ -229,3 +243,32 @@ The results should not be interpreted as medical advice, clinical recommendation
 ### 10.7 Limitations and Accountability
 
 Any limitations, biases, or uncertainties identified during the project will be explicitly documented. Model performance will not be presented without appropriate context regarding the dataset and evaluation methodology.
+
+### Class Imbalance Consideration
+
+The initial target inspection shows that early readmission (`<30`) represents 11.16% of all encounters, while the remaining encounters represent 88.84%.
+
+This indicates a meaningful class imbalance in the binary prediction task.
+
+Because of this imbalance, model evaluation will not rely on accuracy alone. The project will consider metrics that provide a more informative assessment of performance on the minority positive class, including precision, recall, F1-score, ROC-AUC, and Precision-Recall AUC where appropriate.
+
+The final evaluation strategy will be defined before model comparison to avoid selecting models based solely on overall accuracy.
+
+### Train-Test Split Strategy
+
+Because the dataset contains multiple hospitalization encounters for some patients, a random row-level split could allow encounters from the same patient to appear in both the training and test sets.
+
+To reduce this form of patient-level information leakage, the project uses a group-based split using `patient_nbr` as the grouping variable.
+
+The initial split uses approximately 80% of the encounters for training and 20% for testing, with a fixed random seed of 42 to ensure reproducibility.
+
+The resulting split contains:
+
+| Dataset | Encounters | Patients | Early Readmission Rate |
+|---------|-----------:|---------:|-----------------------:|
+| Training | 81,613 | 57,214 | 11.28% |
+| Test | 20,153 | 14,304 | 10.67% |
+
+No patient identifiers are shared between the training and test sets.
+
+This patient-level separation is intended to provide a more realistic estimate of model generalization to patients not represented in the training data.
