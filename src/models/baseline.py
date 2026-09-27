@@ -1,7 +1,6 @@
 from pathlib import Path
 import sys
 
-import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
     classification_report,
@@ -48,26 +47,31 @@ def train_baseline_model(
 
 def evaluate_model(
     model,
-    X_test,
-    y_test,
+    X_data,
+    y_data,
+    dataset_name,
 ) -> None:
-    """Evaluate the baseline model on the test set."""
+    """Evaluate the model on a dataset."""
 
-    y_proba = model.predict_proba(X_test)[:, 1]
+    y_proba = model.predict_proba(X_data)[:, 1]
 
-    y_pred = (y_proba >= 0.5).astype(int)
+    y_pred = (
+        y_proba >= 0.5
+    ).astype(int)
 
     roc_auc = roc_auc_score(
-        y_test,
+        y_data,
         y_proba,
     )
 
     average_precision = average_precision_score(
-        y_test,
+        y_data,
         y_proba,
     )
 
-    print("\n--- Evaluation metrics ---")
+    print(
+        f"\n--- {dataset_name} evaluation ---"
+    )
 
     print(
         f"ROC-AUC: {roc_auc:.4f}"
@@ -82,7 +86,7 @@ def evaluate_model(
 
     print(
         classification_report(
-            y_test,
+            y_data,
             y_pred,
             digits=4,
         )
@@ -92,7 +96,7 @@ def evaluate_model(
 
     print(
         confusion_matrix(
-            y_test,
+            y_data,
             y_pred,
         )
     )
@@ -100,12 +104,15 @@ def evaluate_model(
 
 def evaluate_thresholds(
     model,
-    X_test,
-    y_test,
+    X_data,
+    y_data,
+    dataset_name,
 ) -> None:
-    """Evaluate precision, recall and F1 across classification thresholds."""
+    """Evaluate metrics across classification thresholds."""
 
-    y_proba = model.predict_proba(X_test)[:, 1]
+    y_proba = model.predict_proba(
+        X_data
+    )[:, 1]
 
     thresholds = [
         0.20,
@@ -117,7 +124,10 @@ def evaluate_thresholds(
         0.80,
     ]
 
-    print("\n--- Threshold analysis ---")
+    print(
+        f"\n--- Threshold analysis: "
+        f"{dataset_name} ---"
+    )
 
     print(
         f"{'Threshold':>10} "
@@ -130,22 +140,25 @@ def evaluate_thresholds(
     print("-" * 58)
 
     for threshold in thresholds:
-        y_pred = (y_proba >= threshold).astype(int)
+
+        y_pred = (
+            y_proba >= threshold
+        ).astype(int)
 
         precision = precision_score(
-            y_test,
+            y_data,
             y_pred,
             zero_division=0,
         )
 
         recall = recall_score(
-            y_test,
+            y_data,
             y_pred,
             zero_division=0,
         )
 
         f1 = f1_score(
-            y_test,
+            y_data,
             y_pred,
             zero_division=0,
         )
@@ -176,28 +189,44 @@ def main() -> None:
         f"Dataset rows: {len(df):,}"
     )
 
-    print("\nSplitting data by patient...")
+    print(
+        "\nSplitting data by patient..."
+    )
 
-    train_df, test_df = split_by_patient(df)
+    (
+        train_df,
+        validation_df,
+        test_df,
+    ) = split_by_patient(df)
 
     print(
-        f"Training rows: {len(train_df):,}"
+        f"Training rows: "
+        f"{len(train_df):,}"
     )
 
     print(
-        f"Test rows: {len(test_df):,}"
+        f"Validation rows: "
+        f"{len(validation_df):,}"
+    )
+
+    print(
+        f"Test rows: "
+        f"{len(test_df):,}"
     )
 
     print("\nPreparing features...")
 
     (
         X_train,
+        X_validation,
         X_test,
         y_train,
+        y_validation,
         y_test,
         preprocessor,
     ) = prepare_features(
         train_df,
+        validation_df,
         test_df,
     )
 
@@ -207,52 +236,83 @@ def main() -> None:
     )
 
     print(
+        f"Validation features: "
+        f"{X_validation.shape[1]:,}"
+    )
+
+    print(
         f"Test features: "
         f"{X_test.shape[1]:,}"
     )
 
-    print("\nTraining logistic regression...")
+    print(
+        "\nTraining logistic regression..."
+    )
 
     model = train_baseline_model(
         X_train,
         y_train,
     )
 
-    print("Model training completed.")
+    print(
+        "Model training completed."
+    )
 
-    print("\nEvaluating baseline model...")
+    print(
+        "\nEvaluating baseline on "
+        "validation data..."
+    )
 
     evaluate_model(
         model,
-        X_test,
-        y_test,
+        X_validation,
+        y_validation,
+        "Validation",
     )
 
     evaluate_thresholds(
         model,
-        X_test,
-        y_test,
+        X_validation,
+        y_validation,
+        "Validation",
     )
 
-    print("\n--- Baseline validation ---")
+    print(
+        "\n--- Baseline validation ---"
+    )
 
     print(
         "Patient-level split: YES"
     )
 
     print(
-        "Preprocessor fitted on training data only: YES"
+        "Preprocessor fitted on "
+        "training data only: YES"
     )
 
     print(
-        "Test data transformed without fitting: YES"
+        "Validation data transformed "
+        "without fitting: YES"
+    )
+
+    print(
+        "Test data transformed "
+        "without fitting: YES"
+    )
+
+    print(
+        "Test set used for model "
+        "selection: NO"
     )
 
     print(
         "Class weighting: balanced"
     )
 
-    print("\nBaseline model completed successfully.")
+    print(
+        "\nBaseline model completed "
+        "successfully."
+    )
 
 
 if __name__ == "__main__":
