@@ -8,6 +8,9 @@ from sklearn.metrics import (
     confusion_matrix,
     roc_auc_score,
     average_precision_score,
+    precision_score,
+    recall_score,
+    f1_score,
 )
 
 # Allow importing project modules from src/
@@ -32,11 +35,11 @@ def train_baseline_model(
     """Train the baseline logistic regression model."""
 
     model = LogisticRegression(
-    solver="liblinear",
-    max_iter=1000,
-    class_weight="balanced",
-    random_state=42,
-)
+        solver="liblinear",
+        max_iter=1000,
+        class_weight="balanced",
+        random_state=42,
+    )
 
     model.fit(X_train, y_train)
 
@@ -50,8 +53,9 @@ def evaluate_model(
 ) -> None:
     """Evaluate the baseline model on the test set."""
 
-    y_pred = model.predict(X_test)
     y_proba = model.predict_proba(X_test)[:, 1]
+
+    y_pred = (y_proba >= 0.5).astype(int)
 
     roc_auc = roc_auc_score(
         y_test,
@@ -92,6 +96,69 @@ def evaluate_model(
             y_pred,
         )
     )
+
+
+def evaluate_thresholds(
+    model,
+    X_test,
+    y_test,
+) -> None:
+    """Evaluate precision, recall and F1 across classification thresholds."""
+
+    y_proba = model.predict_proba(X_test)[:, 1]
+
+    thresholds = [
+        0.20,
+        0.30,
+        0.40,
+        0.50,
+        0.60,
+        0.70,
+        0.80,
+    ]
+
+    print("\n--- Threshold analysis ---")
+
+    print(
+        f"{'Threshold':>10} "
+        f"{'Precision':>12} "
+        f"{'Recall':>10} "
+        f"{'F1':>10} "
+        f"{'Predicted +':>12}"
+    )
+
+    print("-" * 58)
+
+    for threshold in thresholds:
+        y_pred = (y_proba >= threshold).astype(int)
+
+        precision = precision_score(
+            y_test,
+            y_pred,
+            zero_division=0,
+        )
+
+        recall = recall_score(
+            y_test,
+            y_pred,
+            zero_division=0,
+        )
+
+        f1 = f1_score(
+            y_test,
+            y_pred,
+            zero_division=0,
+        )
+
+        predicted_positive = y_pred.sum()
+
+        print(
+            f"{threshold:>10.2f} "
+            f"{precision:>12.4f} "
+            f"{recall:>10.4f} "
+            f"{f1:>10.4f} "
+            f"{predicted_positive:>12,}"
+        )
 
 
 def main() -> None:
@@ -156,6 +223,12 @@ def main() -> None:
     print("\nEvaluating baseline model...")
 
     evaluate_model(
+        model,
+        X_test,
+        y_test,
+    )
+
+    evaluate_thresholds(
         model,
         X_test,
         y_test,
