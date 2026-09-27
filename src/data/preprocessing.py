@@ -49,8 +49,6 @@ CATEGORICAL_COLUMNS = [
     "miglitol",
     "troglitazone",
     "tolazamide",
-    "examide",
-    "citoglipton",
     "insulin",
     "glyburide-metformin",
     "glipizide-metformin",
