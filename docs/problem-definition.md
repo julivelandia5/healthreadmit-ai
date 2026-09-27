@@ -254,21 +254,36 @@ Because of this imbalance, model evaluation will not rely on accuracy alone. The
 
 The final evaluation strategy will be defined before model comparison to avoid selecting models based solely on overall accuracy.
 
-### Train-Test Split Strategy
+### Train-Validation-Test Split Strategy
 
-Because the dataset contains multiple hospitalization encounters for some patients, a random row-level split could allow encounters from the same patient to appear in both the training and test sets.
+Because the dataset contains multiple hospitalization encounters for some patients, a random row-level split could allow encounters from the same patient to appear in more than one dataset.
 
 To reduce this form of patient-level information leakage, the project uses a group-based split using `patient_nbr` as the grouping variable.
 
-The initial split uses approximately 80% of the encounters for training and 20% for testing, with a fixed random seed of 42 to ensure reproducibility.
+The dataset is divided into three subsets:
+
+- **Training set:** used to fit the preprocessing pipeline and train Machine Learning models.
+- **Validation set:** used during model development for model comparison, threshold analysis, and other model-selection decisions.
+- **Test set:** reserved for the final evaluation after model and threshold selection have been completed.
+
+The split is performed using `GroupShuffleSplit` with a fixed random seed of 42. The initial test split uses approximately 20% of the dataset. The remaining data is then divided into training and validation subsets, with approximately 20% of the remaining encounters assigned to validation.
 
 The resulting split contains:
 
-| Dataset | Encounters | Patients | Early Readmission Rate |
-|---------|-----------:|---------:|-----------------------:|
-| Training | 81,613 | 57,214 | 11.28% |
-| Test | 20,153 | 14,304 | 10.67% |
+| Dataset | Encounters | Early Readmission Rate |
+|---------|-----------:|-----------------------:|
+| Training | 65,146 | 11.25% |
+| Validation | 16,467 | 11.40% |
+| Test | 20,153 | 10.67% |
 
-No patient identifiers are shared between the training and test sets.
+Patient-level separation is enforced across all three datasets:
 
-This patient-level separation is intended to provide a more realistic estimate of model generalization to patients not represented in the training data.
+- Train/Validation overlapping patients: 0
+- Train/Test overlapping patients: 0
+- Validation/Test overlapping patients: 0
+
+The preprocessing pipeline is fitted exclusively on the training data. Validation and test data are transformed using the already-fitted preprocessing pipeline without refitting it.
+
+The test set is not used for model selection, threshold selection, or iterative development. It will remain reserved for the final evaluation of the selected model and decision threshold.
+
+This strategy is intended to provide a more realistic estimate of model generalization to patients who are not represented in the training data while reducing information leakage between datasets.
